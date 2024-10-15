@@ -1,0 +1,342 @@
+---
+title: "ASSIGNMENT 1"
+subtitle: "DSCI 6607 -- Programmatic Data Analysis Using Python and R  \nName: Sahil
+  Khan  \nStudent ID: 202482066   \nSubmission Date: 15-Oct-2024 \n"
+output:
+  pdf_document: default
+---
+
+## Question 1  
+Simulate tossing an unfair coin (probability of heads = 0.63) for 301 trials and compute the proportion of heads.
+$$ {\widehat p} = \frac{\text{Number of Heads}}{\text{Total number of trials}} $$
+```{python}
+import random
+
+probHeads = 0.63
+tossTrials = 301
+
+headsCount = 0
+
+for i in range(tossTrials):
+    if random.random() < probHeads:
+        headsCount += 1
+
+estProbHeads = headsCount / tossTrials
+
+
+print(f"Number of heads: {headsCount}")
+print(f"Estimated probability of Heads: {estProbHeads}") 
+```
+***
+## Question 2 
+\begin{itemize}
+\item[a)] Implementation of the Bisection Method 
+\end{itemize}
+```{python}
+import math
+
+def bisection_root(a, b, f):
+    """Finds the root of a function using the bisection method.
+
+    Args:
+        a: Left endpoint of the interval.
+        b: Right endpoint of the interval.
+        f: The function for which to find the root.
+
+    Returns:
+        The root of the function.
+    """
+
+    while abs(f((a + b) / 2)) > 1e-5:  # Changed the stop condition to be based on f(m)
+        m = (a + b) / 2
+        if f(m) > 0:
+            a = m
+        else:
+            b = m
+    return (a + b) / 2
+```
+
+The bisection method requires an interval [a, b] where f(a) and f(b) have opposite signs (one positive, one negative). This guarantees that the function crosses zero at least once within the interval. 
+
+For given interval [-2.3,-0.23]:
+```{python}
+def f(x):
+    return x**3 + 4 * x**2 - 3
+  
+a = -2.3
+b = -0.23
+print(f"The sign of f({a}) = x^3 + 4x^2 - 3 for a={a} is: {f(a)}")
+print(f"The sign of f({b}) = x^3 + 4x^2 - 3 for a={b} is: {f(b)}")
+```
+Since f(-2.3) and f(-0.23) have opposite signs, the bisection method is guaranteed to find a root in the interval [-2.3, -0.23].
+
+\begin{itemize}
+\item[b)] Finding the root of $f(x) = x^3 + 4 x^2 - 3$ in interval $[-2.3,-0.23]$.
+\end{itemize}
+```{python}
+root = bisection_root(a, b, f)
+print(f"The root of f(x) = x^3 + 4x^2 - 3 in the interval [-2.3,-0.23] is: {root}")
+
+```
+***
+## Question 3
+```{r}
+# library(datasets)
+head(rivers)
+```
+\begin{itemize}
+\item[a)] R Function to Compute Cumulative Sample Means
+\end{itemize}
+```{r}
+cumulative_means <- function(x) {
+  n <- length(x)
+  cumsum(x) / (1:n)
+}
+```
+\begin{itemize}
+\item[b)] $n=1000$ observations with replacement from `rivers` dataset.
+\end{itemize}
+```{r}
+n <- 1000
+rivers_sample <- sample(rivers, n, replace = TRUE)
+head(rivers_sample)
+```
+\begin{itemize}
+\item[c)] Applying function (a) to the data of part (b). 
+\end{itemize}
+```{r}
+cumulative_sample_means <- cumulative_means(rivers_sample)
+head(cumulative_sample_means)
+```
+\begin{itemize}
+\item[d)] Plotting the population mean. 
+\end{itemize}
+```{r}
+plot(cumulative_sample_means, type = "l", xlab = "Sample Size", ylab = "Cumulative Mean",
+     main = "Cumulative Sample Means of River Lengths with 1000 Obs")
+abline(h=mean(rivers), col="red", lty=2)
+```
+
+### Explanation: 
+The plot shows how the cumulative sample mean converges towards the population mean (red dashed line) as the sample size increases.  
+The Central Limit Theorem suggests that as 'n' grows larger, the distribution of sample means approaches a normal distribution centered around the population mean. We can observe this convergence visually in the plot.  
+The more samples we have, the closer the cumulative sample mean gets to the true population mean.
+
+## Plotting with 10000 Observations:
+```{r}
+n <- 10000
+rivers_sample <- sample(rivers, n, replace = TRUE)
+cumulative_sample_means <- cumulative_means(rivers_sample)
+
+plot(cumulative_sample_means, type = "l", xlab = "Sample Size", ylab = "Cumulative Mean",
+     main = "Cumulative Sample Means of River Lengths with 10000 Obs")
+abline(h = mean(rivers), col = "red", lty = 2)
+```
+The plot clearly shows that as the sample size increases, the cumulative sample mean converges towards the true population mean (represented by the red dashed line). The fluctuations around the population mean decrease with increasing sample size, illustrating the principle of the Central Limit Theorem: with larger samples, the sample mean becomes a more precise estimate of the population mean.  
+
+***  
+##  Question 4  
+
+The `airquality` data set reports the daily air quality measurements 
+in New York, May to September 1973. The data set includes 153 observations and 6 variables.
+```{r}
+# library(datasets)
+head(airquality)
+```
+\begin{itemize}
+\item[a)] Ridge Regression Model Coefficients:
+  \end{itemize}
+```{r}
+ridge_regression <- function(X, y, lambda) {
+  n <- nrow(X)
+  p <- ncol(X)
+  I <- diag(p)
+  beta_ridge <- solve(t(X) %*% X + lambda * I) %*% t(X) %*% y
+  return(beta_ridge)
+}
+```
+\begin{itemize}
+\item[b)] Normalize Variables:
+  \end{itemize}
+```{r}
+ozone <- airquality$Ozone
+solar_r <- airquality$Solar.R
+wind <- airquality$Wind
+temp <- airquality$Temp
+
+data <- data.frame(Ozone = ozone, Solar.R = solar_r, Wind = wind, Temp = temp)
+data <- na.omit(data) # Remove rows with missing values
+
+normalize <- function(x) {
+  (x - mean(x)) / sd(x)
+}
+
+data_norm <- as.data.frame(lapply(data, normalize))
+
+X_norm <- as.matrix(data_norm[, c("Solar.R", "Wind", "Temp")])
+y_norm <- data_norm$Ozone
+
+print("Normalized Explanatory Variables (X_norm):")
+print(head(X_norm, 5))
+
+print("Normalized Response Variable (y_norm):")
+print(head(y_norm, 10))
+```
+\begin{itemize}
+\item[c)] computes $\widehat{\bf \beta}_R$ of model for $\lambda=0.1$ :
+  \end{itemize}
+```{r}
+lambda <- 0.1
+beta_r <- ridge_regression(X_norm, y_norm, lambda)
+
+print(beta_r)
+```
+\begin{itemize}
+\item[d)] Box Plot of 'OZONE', 'SOLAR', 'WIND' AND 'TEMP' :
+\end{itemize}
+```{r}
+# Load necessary library
+library(ggplot2)
+
+# Display boxplots of the variables
+boxplot(data$Solar.R, main="Boxplot of Solar.R", col="lightblue", horizontal=TRUE)
+boxplot(data$Wind, main="Boxplot of Wind", col="lightgreen", horizontal=TRUE)
+boxplot(data$Temp, main="Boxplot of Temp", col="lightpink", horizontal=TRUE)
+boxplot(data$Ozone, main="Boxplot of Ozone", col="lightyellow", horizontal=TRUE)
+```
+
+### Analysis of BoxPlot:  
+\begin{itemize}
+\item[a)] Ozone: The Ozone boxplot shows some outliers to the right (higher values). This indicates a right-skewed distribution. When a distribution is skewed, the mean is pulled in the direction of the skew (in this case, towards the higher values), making it less representative of the typical value. Therefore, the median is a better measure of the center for Ozone.
+\item[b)] Solar.R: The Solar.R boxplot appears relatively symmetrical, with the median roughly in the center of the box and the whiskers fairly even. There's a possible minor outlier or two, but they don't seem to drastically skew the distribution. In such cases, the mean is a reasonable measure of the center.
+\item[c)] Wind: Similar to Ozone, the Wind boxplot indicates a right-skewed distribution due to the presence of a few outliers on the right. The skew, while not as pronounced as Ozone, is enough to suggest that the median is a more appropriate measure of central tendency.
+\item[d)] Temp: The Temp boxplot looks quite symmetrical, similar to Solar.R. The median is in the middle of the box, and the whiskers are relatively even. Therefore, the mean is a suitable measure of central tendency for Temp.
+\end{itemize}
+***
+## Question 5
+\begin{itemize}
+\item[a)]Divide the AirQuality Dataset [n=100] into training and testing:
+\end{itemize}
+```{r}
+set.seed(42)
+sample_data <- data_norm[sample(nrow(data_norm), 100), ]
+data <- na.omit(sample_data)
+
+# Split the data into training (70%) and testing (30%)
+n <- nrow(data)
+train_indices <- sample(1:n, 70)  #70% for training
+test_indices <- setdiff(1:n, train_indices)
+print(n)
+```
+\begin{itemize}
+\item[b)]Function to Calculate Coefficients of Regression Model and RMSE:
+\end{itemize}
+```{r}
+ridge_regression <- function(X, y, lambda) {
+  n <- nrow(X)
+  p <- ncol(X)
+  I <- diag(p)
+  beta_ridge <- solve(t(X) %*% X + lambda * I) %*% t(X) %*% y
+  return(beta_ridge)
+}
+
+calculate_rmse <- function(X_train, y_train, X_test, y_test, lambda){
+  beta_r <- ridge_regression(X_train, y_train, lambda)
+  y_pred <- X_test %*% beta_r
+  rmse <- sqrt(mean((y_test - y_pred)^2))
+  return(rmse)
+}
+```
+\begin{itemize}
+\item[c)]Find optimal $\lambda$ using RMSE:
+\end{itemize}
+```{r}
+lambda_values <- seq(-2, 2, length.out = 100)
+rmse_values <- numeric(length(lambda_values))
+
+for (i in 1:length(lambda_values)) {
+  X_train <- X_norm[train_indices, ]
+  y_train <- y_norm[train_indices]
+  X_test <- X_norm[test_indices, ]
+  y_test <- y_norm[test_indices]
+
+
+  rmse_values[i] <- calculate_rmse(X_train, y_train, X_test, y_test, lambda_values[i])
+
+}
+
+optimal_lambda <- lambda_values[which.min(rmse_values)]
+
+plot(lambda_values, rmse_values, type = "l", xlab = "Lambda", ylab = "RMSE")
+abline(v = optimal_lambda, col = "red", lty = 2)  # Show the optimal lambda
+
+print(paste("Optimal Lambda:", optimal_lambda))
+```
+The plot of RMSE vs. lambda shows the impact of the regularization parameter on model performance. The optimal lambda value '2' (indicated by the vertical red dashed line) is where the RMSE is minimized, indicating that, for this dataset split, this degree of regularization achieves the optimal balance between overfitting and underfitting on unseen data.
+
+***
+## Question 6
+\begin{itemize}
+\item[a)]Function to simulate from a standard normal distribution:
+\end{itemize}
+```{python}
+import math
+import random
+import matplotlib.pyplot as plt
+import numpy as np
+
+def box_muller(u1, u2):
+    """Generates standard normal random variables using the Box-Muller transform.
+
+    Args:
+        u1: A random number between 0 and 1.
+        u2: A random number between 0 and 1.
+
+    Returns:
+        A tuple containing two standard normal random variables.
+    """
+    x = np.sqrt(-2 * np.log(u1)) * np.cos(2 * np.pi * u2)
+    y = np.sqrt(-2 * np.log(u1)) * np.sin(2 * np.pi * u2)
+
+    return x, y
+```
+\begin{itemize}
+\item[b)]Generate 1000 observations:
+\end{itemize}
+```{python}
+n_samples = 1000
+box_muller_samples = []
+for _ in range(n_samples):
+    u1 = random.random()
+    u2 = random.random()
+    x, y = box_muller(u1, u2)
+    box_muller_samples.extend([x,y])
+```
+\begin{itemize}
+\item[c)]Plot histogram and compare:
+\end{itemize}
+```{python}
+plt.figure(figsize=(12, 6))
+plt.subplot(1, 2, 1)
+plt.hist(box_muller_samples, bins=50, color='b', alpha=0.7, label="Box-Muller Samples")
+plt.title('Histogram of Box-Muller Observations')
+plt.xlabel('Value')
+plt.ylabel('Density')
+
+plt.subplot(1, 2, 2)
+plt.hist(box_muller_samples, bins=50, alpha=0.5, label="Box-Muller Samples")
+plt.hist(np.random.randn(1000), bins=50, alpha=0.5, label='True Normal')
+plt.xlabel("Value")
+plt.ylabel("Density")
+plt.title("Comparison of Box-Muller Samples and True Standard Normal")
+plt.legend()
+
+plt.tight_layout()
+plt.show()
+```
+
+The histogram of the Box-Muller generated samples closely resembles the histogram of the true standard normal distribution. This visually confirms that the Box-Muller transform effectively generates random numbers that follow a standard normal distribution. 
+
+The overlapping histograms indicate that the generated samples mimic the bell-shaped curve, centered around zero, characteristic of a standard normal distribution.
+
+***
