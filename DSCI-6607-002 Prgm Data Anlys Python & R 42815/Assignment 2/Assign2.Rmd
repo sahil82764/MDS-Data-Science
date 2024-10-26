@@ -1,0 +1,398 @@
+---
+title: "ASSIGNMENT 2"
+subtitle: "DSCI 6607 -- Programmatic Data Analysis Using Python and R  \nName: Sahil
+  Khan  \nStudent ID: 202482066   \nSubmission Date: 26-Oct-2024 \n"
+output:
+  pdf_document:
+    latex_engine: xelatex
+---
+
+## Question 1  
+Recall the bisection method, we leaned in assignment 1. The bisection method can be generalized to deal
+with the case f(xl)f(xr) > 0 (i.e., the two end points do not have opposite signs), by broadening the bracket.
+That is, we reduce xl and/or increase xr, and try again. A reasonable choice for broadening the bracket is to
+double the width of the interval [xl, xr], that is
+$$ {\text m} \leftarrow {(x_l + x_r)}/2, $$
+$${\text w} \leftarrow {{x_r - x_l}}, $$
+$${x_l} \leftarrow {{m - w}}, $$
+$${x_r} \leftarrow {{m + w}}, $$
+\begin{itemize}
+\item[a)] Incorporate bracket broadening into the bisection method 
+\end{itemize}
+```{r}
+bisectionBroadening <- function(f, xl, xr, tol = 1e-6, max_iter = 50) {
+    iter <- 0
+    while (iter < max_iter) {
+        m <- (xl + xr) / 2
+        w <- xr - xl
+        if (f(xl) * f(xr) <= 0) {
+            break
+        }
+        xl <- m - w
+        xr <- m + w
+        iter <- iter + 1
+    }
+    while (abs(xr - xl) > tol && iter < max_iter) {
+        m <- (xl + xr) / 2
+        if (f(xl) * f(m) < 0) {
+            xr <- m
+        } else {
+            xl <- m
+        }
+        iter <- iter + 1
+    }
+    return(m)
+}
+```
+\begin{itemize}
+\item[b)] Finding the root of
+$$ f(x) = (x − 1)^3 − 2x^2 + 10 − sin(x) $$ 
+\end{itemize}
+```{r}
+f <- function(x) (x - 1)^3 - 2 * x^2 + 10 - sin(x)
+root <- bisectionBroadening(f, 1, 2)
+print(root)
+```
+***
+
+## Question 2
+We plan to test the equality for the means of two samples in Python.
+\begin{itemize}
+\item[1.] Let x and y be two samples of sizes n1 and n2, respectively. To test $$ H0 : μx = μy $$ vs $$ H1 : μx \neq μy, $$ we compute the test statistic
+$$ t = \frac{\bar{x} - \bar{y}}{\sqrt{s_p^2(\frac{1}{n_1}+\frac{1}{n_2})}} $$
+where $$ \bar{x}, \bar{y} $$ denote the means of x and y samples and
+$$ s_p^2 = \frac{(n_1-1)S_1^2 +(n_2-1)S_2^2 }{n_1 + n_2 -1} $$
+where
+$$ s_1^2 = \frac{1}{n_1-1} \sum_{i=1}^{n_1}(x_i - \bar{x})^2 $$
+$$ s_2^2 = \frac{1}{n_2-1} \sum_{i=1}^{n_2}(y_i - \bar{y})^2 $$
+\end{itemize}
+
+\begin{itemize}
+\item[2.] Python function which takes x and y as two lists and returns the observed test statistic.
+\end{itemize}
+```{python}
+import numpy as np
+
+def tStatistic(x, y):
+
+  n1 = len(x)
+  n2 = len(y)
+  xBar = np.mean(x)
+  yBar = np.mean(y)
+  s1 = np.var(x, ddof=1)
+  s2 = np.var(y, ddof=1)
+  sp = ((n1-1)*s1 + (n2-1)*s2) / (n1 + n2 - 2)
+  t = (xBar - yBar) / np.sqrt(sp * (1/n1 + 1/n2))
+
+  return t
+```
+
+\begin{itemize}
+\item[3.] Generate 50 observations form normal distribution with mean =1 and standard deviation=2 and assign the data to list x. Generate 57 observations from uniform distribution between -2 and 2 and assign data to list y.
+\end{itemize}
+```{python}
+# Generating sample X from Normal Distribution
+x = np.random.normal(loc=1, scale=2, size=50)
+
+# Generating sample Y from Uniform Distribution
+y = np.random.uniform(low=-2, high=2, size=57)
+```
+
+\begin{itemize}
+\item[4.] Applying our function and computing the test statistic for the two samples from part 3.
+\end{itemize}
+```{python}
+
+t = tStatistic(x, y)
+
+print("The observed t-statistic is:", t)
+```
+***
+
+## Question 3
+Consider the python list
+$$ x = [3, 8, 13, 18, 108, 25, 23, 17, 203, 11, 23] $$
+Write a python function where takes the list and uses only list comprehension and returns the odd values
+smaller than 23.
+```{python}
+def oddValuesUnder23(lst):
+  return [x for x in lst if x % 2 != 0 and x < 23]
+
+x = [3, 8, 13, 18, 108, 25, 23, 17, 203, 11, 23]
+
+print("Odd values smaller than 23:", oddValuesUnder23(x))
+```
+***
+
+## Question 4
+\begin{itemize}
+\item[1.] Find the distribution of statistic $$ \sum_{i=1}^{10}X_i $$
+\end{itemize}
+$$ \text{Given that} X_i \sim N(\mu, \sigma^2) \text{ for i=1,2,...,10 where } \mu \text{ and } \sigma^2 \text{ are the mean and variance of the population,}$$ 
+$$ \text{we want to find the distribution of statistics} \sum_{i=1}^{10}X_i $$
+Let: $$ S = \sum_{i=1}^{10}X_i $$
+Since each Xi is normally distributed, and the sum of independent normal random variables is also normally distributed, S will be normally distributed.
+
+Mean of the Sum: The mean of S, E(S) is the sum of the means of Xi.
+Variance of the Sum: The variance of S, Var(S), is the sum of the variances of Xi.
+$$ E(S) = E(\sum_{i=1}^{10}X_i) = \sum_{i=1}^{10}E(X_i) = \sum_{i=1}^{10}\mu = 10\mu $$
+$$ Var(S) = Var(\sum_{i=1}^{10}X_i) = \sum_{i=1}^{10}Var(X_i) = \sum_{i=1}^{10}\sigma^2 = 10\sigma^2 $$
+Therefore,
+$$ S = \sum_{i=1}^{10}X_i \sim N(10\mu,10\sigma^2) $$
+\begin{itemize}
+\item[2.] We would like to test the finding of part (1) numerically. To do that first generate a sample of size 10 from the Normal distribution with parameters $$ \mu = 23 \text{ and } \sigma^2 = 3.6$$ and then compute the sum of the generated observations.
+\end{itemize}
+```{python}
+def genNormalDist(sims, size=10, mu=23, sigSq=3.6):
+
+	sampleSums = []
+
+	for i in range(sims):
+	  # Generating a sample of size=10 from Normal Distribution
+		sample = np.random.normal(loc=mu, scale=np.sqrt(sigSq), size=size)
+
+		sampleSums.append(np.sum(sample))
+
+	return sampleSums
+
+print("Sample Sum:", genNormalDist(sims=1))
+```
+
+\begin{itemize}
+\item[3.] Use python and simulate 10000 times part (2) and compute the sum of the generated samples of size 10.
+\end{itemize}
+```{python}
+simulations = 10000
+sampleSumList = genNormalDist(sims=simulations)
+print("Sample Sums after 10000 simulations (first 10 obs):")
+print("\n".join(str(sum_value) for sum_value in sampleSumList[0:10]))
+```
+\begin{itemize}
+\item[4.] Plot the histogram of the 10000 observed statistics from part (3). Then show the density curve of the theoretical distribution you found in part (1) on the histogram.
+\end{itemize}
+```{python}
+import matplotlib.pyplot as plt
+from scipy.stats import norm
+
+mu=23
+sigSq=3.6 
+
+plt.hist(sampleSumList, bins=50, density=True, alpha=0.5, label='Simulated')
+
+# Plotting the density curve of the Theoretical Distribution
+x = np.linspace(np.min(sampleSumList), np.max(sampleSumList), 100)
+plt.plot(x, norm.pdf(x, loc=10*mu, scale=np.sqrt(10*sigSq)), color='red', label='Theoretical')
+
+plt.xlabel('Sum of 10 Observations')
+plt.ylabel('Probability Density')
+plt.legend()
+plt.title('Histogram of Simulated and Theoretical Distribution')
+plt.show()
+```
+
+***
+## Question 5
+The continuous random variable X has the following probability density function (pdf), for some positive
+constant c,
+$$ f(x) = \frac{3}{(1+x)^3},\ \ 0\leq x \leq c. $$
+\begin{itemize}
+\item[a.] Find c which makes f a legitimate pdf?
+\end{itemize}
+To find the constant c that makes the fxn f(x) a legitimate pdf over the interval [0,c], we need to make sure that the total area under the pdf curve from 0 to c equals 1.
+$$ \int_{0}^{c} f(x)dx = 1 $$
+$$ \int_{0}^{c} \frac{3}{(1+x)^3}dx = 1 $$
+$$ \int \frac{3}{(1+x)^3}dx=-\frac{3}{2(1+x)^2} + C $$
+$$ \int \frac{3}{(1+x)^3}dx = \left[-\frac{3}{2(1+x)^{2}}\right]_{0}^{c} $$
+$$ = -\frac{3}{2(1+c)^{2}} - \left(-\frac{3}{2(1+0)^{2}}\right) $$
+$$ = -\frac{3}{2(1+c)^{2}} + \frac{3}{2} $$
+Now, Set the integral to 1:
+$$-\frac{3}{2(1+c)^{2}} + \frac{3}{2} = 1 $$
+$$-\frac{3}{2(1+c)^{2}} =  - \frac{1}{2} $$
+$$ \frac{3}{2(1+c)^{2}} = \frac{1}{2} $$
+$$ (1+c)^2 = 3  $$
+$$ (1+c) = \sqrt{3}  $$
+$$ c = \sqrt{3} - 1 = 0.732 $$
+The value of c that makes f(x) a legitimate probability density function is: 0.732
+
+\begin{itemize}
+\item[b.] Use R and plot the pdf curve of the random variable.
+\end{itemize}
+```{r}
+# PDF function
+f <- function(x, c) {
+  3 / (1 + x)^3
+}
+
+# Setting the value for C
+c <- sqrt(3) - 1
+
+# Generate x values for plotting
+x <- seq(0, c, length.out = 100)
+
+# Calculating the PDF values
+y <- f(x, c)
+
+# Plotting the PDF curve
+plot(x, y, type = "l", col = "blue", xlab = "x", ylab = "f(x)", main = "PDF of the Random Variable")
+```
+\begin{itemize}
+\item[c.] What is E(X)?
+\end{itemize}
+$$ E(X) = \int_{0}^{c} x*f(x)dx $$
+$$ E(X) = \int_{0}^{c} x*\frac{3}{(1+x)^3}dx =  3\int_{0}^{c} \frac{x}{(1+x)^3}dx $$
+Applying integration by parts:
+$$ \int u\ dv = uv - \int v \ du $$
+$$ \int \frac{x}{(1+x)^3}dx =  x \left( - \frac{1}{2(1+x)^2}\right) - \int -\frac{1}{2(1+x)^2}dx$$
+$$ = -\frac{x}{2(1+x)^2} + \frac{1}{2}\int (1+x)^{-2} dx$$
+Solving the integral:
+$$ \int (1+x)^{-2} dx = - \frac{1}{1+x} $$
+So, we have:
+$$ \int \frac{x}{(1+x)^3}dx = -\frac{x}{2(1+x)^2} -\frac{1}{2(1+x)} + C$$
+Evaluating with the limits [0,c]:
+$$ \int \frac{x}{(1+x)^3}dx = \left[ -\frac{x}{2(1+x)^2} -\frac{1}{2(1+x)} \right]_{0}^{c}$$
+At x=c:
+$$ -\frac{c}{2(1+c)^2} -\frac{1}{2(1+c)} $$
+At x=0:
+$$ -\frac{0}{2(1+0)^2} -\frac{1}{2(1+0)} = - \frac{1}{2} $$
+Therefore,
+$$ 3\int \frac{x}{(1+x)^3}dx = 3\left( \left[ -\frac{c}{2(1+c)^2} -\frac{1}{2(1+c)} \right] - \left[- \frac{1}{2} \right] \right)$$
+$$ \text{substituting } c=\sqrt{3}-1$$
+$$ E(X) = 3\left( - \frac{\sqrt{3}-1}{2(\sqrt{3})^2} - \frac{1}{2\sqrt{3}} + \frac{1}{2} \right) = 0.268 $$
+\begin{itemize}
+\item[d.] Use R and simulate 1000 observations from this statistical population?
+\end{itemize}
+```{r}
+# Setting the value for c
+c <- sqrt(3) - 1
+
+# Simulating 1000 observations
+n <- 1000
+x <- (1 + runif(1000, 0, c)) - 1
+
+print(x)
+```
+
+\begin{itemize}
+\item[e.] Use the generated data from part (d), estimate the mean and variance of the distribution?
+\end{itemize}
+```{r}
+
+mean_x <- mean(x)
+
+variance_x <- var(x)
+
+print(paste("Estimated mean:", mean_x))
+print(paste("Estimated variance:", variance_x))
+```
+***
+## Question 6
+\begin{itemize}
+\item[1.] Write a Python function which takes a list of numbers x and returns a dictionary including
+\end{itemize}
+- Min : minimum value of x
+- $Q_1$ : first quartile of x
+- M : median of x
+- $Q_3$ : third quartile of x
+- Max : maximum value of x
+- IQR : Q3 − Q1,
+- Outliers : a list of x values which are either smaller than Q1−1.5×IQR or greater than Q3+1.5×IQR.
+```{python}
+def statistics(x):
+
+  # Calculating the required statistics
+  min_x = min(x)
+  q1 = np.percentile(x, 25)
+  median_x = np.median(x)
+  q3 = np.percentile(x, 75)
+  max_x = max(x)
+  iqr = q3 - q1
+  outliers = [value for value in x if value < q1 - 1.5 * iqr or value > q3 + 1.5 * iqr]
+
+
+  stats_dict = {
+    "Min": min_x,
+    "Q_1": q1,
+    "M": median_x,
+    "Q_3": q3,
+    "Max": max_x,
+    "IQR": iqr,
+    "Outliers": outliers
+  }
+
+  return stats_dict
+```
+\begin{itemize}
+\item[2.] Apply your function in part (1) to the following list
+\end{itemize}
+$$ x = [2, 36, 12, 14, 204, 21.6, 22.5, 1, 32.8, 32.1, 13, 10, 88, 3.3, 3.1, 88] $$
+```{python}
+x = [2, 36, 12, 14, 204, 21.6, 22.5, 1, 32.8, 32.1, 13, 10, 88, 3.3, 3.1, 88]
+
+stats_dict = statistics(x)
+
+for key, value in stats_dict.items():
+    print(f"{key}: {value}")
+```
+***
+## Question 7
+\begin{itemize}
+\item[2.]
+\end{itemize}
+```{python}
+def leaveOneOutCrossValidation(X, y):
+
+  n = X.shape[0]  # Number of observations
+  y_pred = np.zeros(n)  # Vector to store predictions
+
+  # Iterating through each observation
+  for i in range(n):
+    # Removing the i-th observation from X and y
+    X_train = np.delete(X, i, axis=0)
+    y_train = np.delete(y, i)
+
+    # Train the model using remaining observations
+    beta_star = np.linalg.solve(X_train.T @ X_train, X_train.T @ y_train)
+
+    # Predicting the response for removed observation
+    y_pred[i] = X[i, :] @ beta_star
+
+  # root mean squared error
+  rmse = np.sqrt(np.sum((y - y_pred)**2) / n)
+
+  return rmse
+```
+\begin{itemize}
+\item[3.]Load the diabetes data from sklearn package in python and take a random sample of 56 observations from the data set and compute your X as the first three features of these 56 observations. The target of these observations will be your response vector.
+\end{itemize}
+```{python}
+from sklearn.datasets import load_diabetes
+
+diab = load_diabetes()
+
+# Extract the features (X) and target (y)
+X = diab.data[:, :3]  # Take the first three features
+y = diab.target
+
+# Randomly select 56 observations
+n = 56
+random_indices = np.random.choice(X.shape[0], size=n, replace=False)
+X_selected = X[random_indices]
+y_selected = y[random_indices]
+```
+\begin{itemize}
+\item[4.]Apply your function form part 2 to the data set of part 3 and report the root MSE.
+\end{itemize}
+```{python}
+
+rmse = leaveOneOutCrossValidation(X_selected, y_selected)
+
+print("Root Mean Squared Error (RMSE):", rmse)
+```
+
+
+
+
+
+
+
+
